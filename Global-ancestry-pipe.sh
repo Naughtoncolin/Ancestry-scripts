@@ -2,11 +2,13 @@
 # May 2022
 # Global Ancestry prediction pipeline.
 
+# TODO: Get variable name for number of threads
 
 ##################### Phase autosomes with Beagle #########################################
-# FUTURE: Check for beagle map files. If not present, download. Delete after phasing
-# FUTURE: Check for reference files. If not present, download. Is this necessary if no imputation is done?
-# FUTURE: Check if "phase_out" directory exists, if not, then make
+# TODO: Check for beagle map files. If not present, download. Delete after phasing
+# TODO: Check for reference files. If not present, download. Is this necessary if no imputation is done?
+# TODO: Check if "phase_out" directory exists, if not, then make
+# TODO: Check for total memory available on each node; set as variable
 #Note: Expects 128GB of memory total per node
 beagle_out=phase_out
 find . -maxdepth 2 -name '*chr[1-9]*[mapgz]' | sort -k2 -t 'h' | parallel -N2 --sshloginfile $PBS_NODEFILE -j1 \
@@ -18,18 +20,13 @@ impute=false \
 
 #################### Get sample names specific to each query population ##################################
 # Run from base directory
-#cut -f1 igsr-ceu.tsv.tsv | tail -n +2  > CEU_samples_nogender.txt
-#cut -f1 igsr-yri.tsv.tsv | tail -n +2  > YRI_samples_nogender.txt
 ls igsr* | xargs -I{} tail -n +2 {} | cut -f1 >> query_population_sampleNames_noGender
 
 # Include gender with sample names. NOTE: This was causing an issue for downstream analysis, so the "nogender" version was used.
-#sed 's/female/F/' igsr-ceu.tsv.tsv | sed  's/male/M/' | cut -f1,2 |tail -n +2 > CEU_samples.txt 
-#sed 's/female/F/' igsr-yri.tsv.tsv | sed  's/male/M/' | cut -f1,2 |tail -n +2 > YRI_samples.txt
 ls igsr* | xargs -I{} tail -n +2 {} | sed 's/female/F/;s/male/M/' | cut -f1,2 >> query_population_sampleNames_withGender
 
 ############# Subset 1000 Genomes VCF based on population-specific sample names #########################
-# Version2: For PBS scripts. Spreads jobs over multiple nodes
-# Change later to include variable for conda env path
+# TODO: Include variable for conda env path
 # TODO: Add output dir path
 # TODO: Add variable associated with reference population acronyms; add to output path
 # TODO: Check for output directory; if not present, make
@@ -52,10 +49,8 @@ $PBS_O_WORKDIR/{1}
 #################### Intersect VCFs ##########################################################
 # Intersect all chromosome vcfs between St. Jude patient data and CEU-YRI 1000 Genomes data
 # Note: VCFs must be indexed
-# Batch rename
-ls CEU-YRI.ALL.* | xargs -P8 -I{} mv {} "$(echo {} | sed 's/.ALL//')" #Didn't work
-ls *.gz  | sed 'p;s/.gz//' | xargs -n2 -P8 mv
-ls | sed 'p;s/\.shapeit2\_integrated\_snvindels\_v2a\_27022019\.GRCh38\.phased\.vcf\.gz\_out//' | xargs -n2 -P8 mv # This works
+# Batch rename (Extra if needed)
+#ls *.gz  | sed 'p;s/.gz//' | xargs -n2 -P8 mv
 
 intersect_out=intersect_out
 find ref/subset phase_out -name '*chr*.gz' | sort  -k2 -t 'c' | parallel -N2 -j1 --sshloginfile $PBS_NODEFILE \
@@ -84,6 +79,7 @@ for file in intersect_out/chr*/0003*gz; do
 	-o $annotation_out/CEU-YRI_$out_name \
 	$file
 done
+
 #Test
 find intersect_out/chr22 -maxdepth 2 -name '0002*gz' | parallel -N1 -j1 echo {1}
 
@@ -93,21 +89,9 @@ bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' {1} | tail
 find phase_out -maxdepth 2 -name '*chr22*gz' | parallel -N1 -j1 \
 bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' {1} | tail
 #######
-
-find intersect_out/chr22 -maxdepth 2 -name '0002*gz' | xargs -I{} \
-bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' {} | tail
+# Other attempts
 
 bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' intersect_out/chr22/0002.vcf.gz | tail
-
-annotation_out=annotation_out
-find intersect_out -maxdepth 2 -name '0002*gz' | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
-/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bcftools annotate \
---force \
---set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' \
--Oz \
---threads 12 \
--o $PBS_O_WORKDIR/$annotation_out/{=1 's/intersect_out\///;s/\/0002.vcf.gz//' =}.vcf.gz \
-$PBS_O_WORKDIR/{1}
 
 annotation_out=annotation_out
 find intersect_out -maxdepth 2 -name '0002*gz' | xargs -I{} \
@@ -119,15 +103,18 @@ find intersect_out -maxdepth 2 -name '0002*gz' | xargs -I{} \
 $PBS_O_WORKDIR/{1}
 
 ###################### Convert to plink file.###############################################
-# NOTE: All samples did not have sex recorded in the output; they came up as "ambiguous".
-# Originally run in the beagle directory.
+# NOTE: All samples did not have sex recorded in the output; they came up as "ambiguous"..
 # Used Plink 1.9
 # FUTURE: Make edits for use in PBS script
+# Query data conversion
 plink_out=plink_out
 find annotation_out/ -name '*.gz' | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
-plink --vcf {1} --out $plink_out/{=1 's/annotation_out\///;s/\.vcf\.gz//' =} --make-bed
+plink --vcf {1} \
+--out $plink_out/{=1 's/annotation_out\///;s/\.vcf\.gz//' =} \
+--make-bed \
+--threads 12
 
-#For ref
+# Ref data conversion
 plink_out=plink_out
 find intersect_out -maxdepth 2 -name '0003*gz' | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 /storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/plink \
@@ -135,16 +122,15 @@ find intersect_out -maxdepth 2 -name '0003*gz' | parallel -N1 -j1 --sshloginfile
 --out $PBS_O_WORKDIR/$plink_out/CEU-YRI_{=1 's/intersect_out\///;s/\/0003\.vcf\.gz//' =} \
 --make-bed \
 --threads 12
-# The following should make the plink file and set the variant IDs in the process, but the $1 and $2 were not functioning as described in the manual. May need to use Plink2 or rename vcf in prior step.
-find non-impute/ -maxdepth 3 -name '*.gz' | parallel -j4 plink --vcf {1} --out plink-out/{=1 's/non-impute\///;s/\.vcf\.gz//' =} --make-bed --set-missing-var-ids @:#:\$1,\$2
  
 # Merge chromosomal plink files for downstream ancestry analysis with 'admixture'
 ls plink_out/*[bf]* | xargs -n3 echo > mergedList.txt
-plink --out plink_merge-all_out --merge-list mergedList.txt # Got warnings for multiallelic sites.
+plink --out plink_merge-all_out --merge-list mergedList.txt # Got warnings for multiallelic sites. Still merged when variant names were unique...I think.
 
 
 ################## Associate ancestry with sample names####################################
 # Creates file with ancestry acronyms on each line in the case of ref samples, or '-' in the case of non-ref samples
+# Takes a few minutes.
 # TODO: Add output name variable.
 plink_fam_file=plink_merge-all_out.fam
 # Read through sample names in the plink fam file
@@ -157,6 +143,7 @@ cat $plink_fam_file | while read line; do
 		echo '-' >> plink_merge-all_out.pop
 		continue
 	fi
+
 	# Loop through ref metadata to associate ancestry with sample name
 	cat igsr* | while read line; do
 		pop=$(echo $line | cut -f4 -d ' ') # Population acrononym e.g. "CEU"
@@ -174,6 +161,7 @@ admixture ../plink_merge-all_out.bed 2 --supervised -j1
 
 
 # R Code For plotting admixture results
+# TODO: Run from bash script
 tbl=read.table("chr22.2.Q")
 newtbl <- tbl[order(tbl$V1),]
 barplot(t(as.matrix(newtbl)), col=rainbow(3),
