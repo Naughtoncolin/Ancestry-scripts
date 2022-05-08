@@ -6,48 +6,14 @@
 ##################### Phase autosomes with Beagle #########################################
 # FUTURE: Check for beagle map files. If not present, download. Delete after phasing
 # FUTURE: Check for reference files. If not present, download. Is this necessary if no imputation is done?
-
-java -jar ~/p-ggibson3-0/software/beagle.19Apr22.7c0.jar \
-gt="../intersect/CEU-YRI.chr22/0003.vcf.gz" \
-ref="../ref/CEU-YRI.chr22.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz" \
-map="plink.chr22.GRCh38.map" \
-out="beagle_stuff/non-impute_no-ref/chr22_beagleTest" \
-impute=false \
-nthreads=4
-
-java -jar ~/p-ggibson3-0/software/beagle.19Apr22.7c0.jar \
-gt="patient_data/baylorOnly.chr22.vqsr.decompose_norm_uniq.PASS_only.vcf.gz" \
-map="beagle_stuff/plink.chr22.GRCh38.map" \
-out="test/chr22_beagle-1st-step" \
-impute=false \
-nthreads=4
-
-#find . -maxdepth 2 -name '*chr[1-9]*[mapgz]' | sort -k2 -t 'h' | parallel -N3 -j13 \
-#java -jar ~/p-ggibson3-0/software/beagle.19Apr22.7c0.jar \
-#gt={3} \
-#ref={2} \
-#map={1} \
-#out=beagle_stuff/{=1 's/..beagle_stuff.plink\.//;s/.GRCh38.map//' =} \
-#impute=false \
-
-#For use in PBS script
-#--sshloginfile $PBS_NODEFILE #List of nodes available
-# With ref
-find . -maxdepth 2 -name '*chr[1-9]*[mapgz]' | sort -k2 -t 'h' | parallel -N3 --sshloginfile $PBS_NODEFILE -j1 \
-java -jar /storage/home/hcoda1/0/cnaughton7/p-ggibson3-0/software/beagle.19Apr22.7c0.jar \
-gt=$PBS_O_WORKDIR/{3} \
-ref=$PBS_O_WORKDIR/{2} \
-map=$PBS_O_WORKDIR/{1} \
-out=$PBS_O_WORKDIR/beagle_stuff/{=1 's/..beagle_stuff.plink\.//;s/.GRCh38.map//' =} \
-impute=false \
-
-# Without ref
 # FUTURE: Check if "phase_out" directory exists, if not, then make
-find . -maxdepth 2 -name '*chr[1-9]*[mapgz]' | sort -k2 -t 'h' | parallel -N3 --sshloginfile $PBS_NODEFILE -j1 \
-java -jar /storage/home/hcoda1/0/cnaughton7/p-ggibson3-0/software/beagle.19Apr22.7c0.jar \
-gt=$PBS_O_WORKDIR/{3} \
+#Note: Expects 128GB of memory total per node
+beagle_out=phase_out
+find . -maxdepth 2 -name '*chr[1-9]*[mapgz]' | sort -k2 -t 'h' | parallel -N2 --sshloginfile $PBS_NODEFILE -j1 \
+java -Xmx128g -jar /storage/home/hcoda1/0/cnaughton7/p-ggibson3-0/software/beagle.19Apr22.7c0.jar \
+gt=$PBS_O_WORKDIR/{2} \
 map=$PBS_O_WORKDIR/{1} \
-out=$PBS_O_WORKDIR/phase_out/{=1 's/..beagle_stuff.plink\.//;s/.GRCh38.map//' =} \
+out=$PBS_O_WORKDIR/$beagle_out/{=1 's/\.\/beagle_maps\/plink\.//;s/.GRCh38.map//' =} \
 impute=false \
 
 #################### Get sample names specific to each query population ##################################
