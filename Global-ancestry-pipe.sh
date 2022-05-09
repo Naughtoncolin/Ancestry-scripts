@@ -158,7 +158,7 @@ done &
 
 ################### Run admixture #####################################################
 admixture ../plink_merge-all_out.bed 2 --supervised -j1
-
+paste plink_merge-all_out.fam plink_merge-all_out.pop admixture_out/plink_merge-all_out.2.Q > admixture_out/ancestry_estimates.txt # Associate global ancestry esitmates with sample names.
 
 # R Code For plotting admixture results
 # TODO: Run from bash script
