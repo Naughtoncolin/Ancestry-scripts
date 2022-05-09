@@ -162,6 +162,7 @@ paste plink_merge-all_out.fam plink_merge-all_out.pop admixture_out/plink_merge-
 
 # R Code For plotting admixture results
 # TODO: Run from bash script
+# TODO: Add population legend
 tbl=read.table("chr22.2.Q")
 newtbl <- tbl[order(tbl$V1),]
 barplot(t(as.matrix(newtbl)), col=rainbow(3),
