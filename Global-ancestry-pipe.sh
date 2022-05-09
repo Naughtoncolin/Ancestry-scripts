@@ -170,3 +170,30 @@ xlab="Individual #", ylab="Ancestry", border=NA)
 newtbl2 <- tbl[order(tbl$V2),]
 barplot(t(as.matrix(newtbl2)), col=rainbow(3),
 xlab="Individual #", ylab="Ancestry", border=NA)
+
+################### Local Ancestry Inference with RFMix2 ##########################
+# TODO: Isolate local ancestry inference pipeline in separate script
+# TODO: Check for out folder
+rfmix_out=rfmix_out
+
+# Make file mapping sample names to ancestry required by RFMix2
+ls igsr* | xargs -I{} tail -n +2 {} | cut -f1,4 > query_population_sampleNames_ancestry
+
+# Edit genomic map files to format required by RFMix2
+for file in beagle_maps/*chr[1-9]*; do
+	out_name=$rfmix_out/$(echo $file | sed 's/beagle_maps\/plink/rfmix/')
+	awk '{print $1"\t"$4"\t"$3}' $file > $out_name
+done
+
+# Run RFMix2
+# Note: Took ~1.5hours with 22 nodes at 24 cores/node.
+# Note: The developers recommended VCFs be joined prior for some reason.
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/rfmix \
+-f $PBS_O_WORKDIR/intersect_out/chr{1}/0002.vcf.gz \
+-r $PBS_O_WORKDIR/intersect_out/chr{1}/0003.vcf.gz \
+-m $PBS_O_WORKDIR/query_population_sampleNames_ancestry \
+-g $PBS_O_WORKDIR/$rfmix_out/rfmix.chr{1}.GRCh38.map \
+-o $PBS_O_WORKDIR/$rfmix_out/chr{1} \
+--chromosome={1} \
+--n-threads=24
