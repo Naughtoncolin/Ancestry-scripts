@@ -197,3 +197,6 @@ seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 -o $PBS_O_WORKDIR/$rfmix_out/chr{1} \
 --chromosome={1} \
 --n-threads=24
+
+################### Tractor Analysis ######################################
+git clone https://github.com/Atkinson-Lab/Tractor
