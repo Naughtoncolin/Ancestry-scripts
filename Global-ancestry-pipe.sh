@@ -200,3 +200,22 @@ seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 
 ################### Tractor Analysis ######################################
 git clone https://github.com/Atkinson-Lab/Tractor
+
+# Step 1: Recovering tracts
+# Required numpy installation
+# TODO: Submit pull request for fixes
+# Identify and correct switch errors in local ancestry calls
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+python3 $PBS_O_WORKDIR/Tractor/UnkinkMSPfile.py \
+--msp $PBS_O_WORKDIR/rfmix_out/chr{1}
+
+# Unzip phased VCFs
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE 
+gunzip $PBS_O_WORKDIR/phase_out/chr{1}.vcf.gz
+
+# Correcting switch errors in genotype data
+# Shuold this step be done on the subset VCF? Or full VCF
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+python $PBS_O_WORKDIR/UnkinkGenofile.py \
+--switches $PBS_O_WORKDIR/rfmix_out/chr{1}.switches.txt \
+--genofile $PBS_O_WORKDIR/phase_out/chr{1}
