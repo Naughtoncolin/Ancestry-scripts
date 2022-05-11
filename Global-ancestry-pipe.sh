@@ -59,7 +59,7 @@ find ref/subset phase_out -name '*chr*.gz' | sort  -k2 -t 'c' | parallel -N2 -j1
 $PBS_O_WORKDIR/{2} $PBS_O_WORKDIR/{1} #This worked
 
 ################## Add variant names to vcf #################################################
-# The following loop works; the subsequent oneliners don't 
+# The following loops work; the subsequent oneliners don't 
 for file in intersect_out/chr*/0002*gz; do
 	out_name=$(echo $file | sed 's/intersect_out\///;s/\/0002//')
 	/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bcftools annotate \
@@ -81,26 +81,26 @@ for file in intersect_out/chr*/0003*gz; do
 done
 
 #Test
-find intersect_out/chr22 -maxdepth 2 -name '0002*gz' | parallel -N1 -j1 echo {1}
+#find intersect_out/chr22 -maxdepth 2 -name '0002*gz' | parallel -N1 -j1 echo {1}
 
-find intersect_out/chr22 -maxdepth 2 -name '0002*gz' | parallel -N1  \
-bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' {1} | tail
+#find intersect_out/chr22 -maxdepth 2 -name '0002*gz' | parallel -N1  \
+#bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' {1} | tail
 
-find phase_out -maxdepth 2 -name '*chr22*gz' | parallel -N1 -j1 \
-bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' {1} | tail
+#find phase_out -maxdepth 2 -name '*chr22*gz' | parallel -N1 -j1 \
+#bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' {1} | tail
 #######
 # Other attempts
 
-bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' intersect_out/chr22/0002.vcf.gz | tail
+#bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' intersect_out/chr22/0002.vcf.gz | tail
 
-annotation_out=annotation_out
-find intersect_out -maxdepth 2 -name '0002*gz' | xargs -I{} \
-/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bcftools annotate \
---set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' \
--Oz \
---threads 12 \
--o $PBS_O_WORKDIR/$annotation_out/{=1 's/intersect_out\///;s/\/0002.vcf.gz//' =}.vcf.gz \
-$PBS_O_WORKDIR/{1}
+#annotation_out=annotation_out
+#find intersect_out -maxdepth 2 -name '0002*gz' | xargs -I{} \
+#/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bcftools annotate \
+#--set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' \
+#-Oz \
+#--threads 12 \
+#-o $PBS_O_WORKDIR/$annotation_out/{=1 's/intersect_out\///;s/\/0002.vcf.gz//' =}.vcf.gz \
+#$PBS_O_WORKDIR/{1}
 
 ###################### Convert to plink file.###############################################
 # NOTE: All samples did not have sex recorded in the output; they came up as "ambiguous"..
