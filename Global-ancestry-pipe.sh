@@ -212,8 +212,8 @@ python3 $PBS_O_WORKDIR/Tractor/UnkinkMSPfile.py \
 --msp $PBS_O_WORKDIR/rfmix_out/chr{1}
 
 # Unzip phased VCFs
-seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE 
-gunzip $PBS_O_WORKDIR/phase_out/chr{1}.vcf.gz
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+gunzip -c $PBS_O_WORKDIR/phase_out/chr{1}.vcf.gz '>' $PBS_O_WORKDIR/phase_out/chr{1}.vcf
 
 # Correcting switch errors in genotype data
 # Shuold this step be done on the subset VCF? Or full VCF
