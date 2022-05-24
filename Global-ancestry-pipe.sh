@@ -166,11 +166,12 @@ grep SJC* ancestry_estimates.txt | cut -f8,9 > query_ancestry_estimates-noNames.
 # TODO: Add population legend
 tbl=read.table("query_ancestry_estimates-noNames.tsv")
 newtbl <- tbl[order(tbl$V1),]
-barplot(t(as.matrix(newtbl)), col=rainbow(3),
-xlab="Individual #", ylab="Ancestry", border=NA)
-newtbl2 <- tbl[order(tbl$V2),]
-barplot(t(as.matrix(newtbl2)), col=rainbow(3),
-xlab="Individual #", ylab="Ancestry", border=NA)
+barplot(t(as.matrix(newtbl)), col=c("darkblue","red"), fill=c("darkblue","red"),
+main="Global Ancestry Proportions",
+xlab="Individual #", ylab="Ancestry", border=NA) +
+  legend("top", 
+         legend = c("European (CEU)", "African (YRI)"), 
+         fill = c("darkblue", "red"))
 
 ################### Local Ancestry Inference with RFMix2 ##########################
 # TODO: Isolate local ancestry inference pipeline in separate script
