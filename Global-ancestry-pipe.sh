@@ -160,10 +160,11 @@ done &
 admixture ../plink_merge-all_out.bed 2 --supervised -j1
 paste plink_merge-all_out.fam plink_merge-all_out.pop admixture_out/plink_merge-all_out.2.Q > admixture_out/ancestry_estimates.txt # Associate global ancestry esitmates with sample names.
 
+grep SJC* ancestry_estimates.txt | cut -f8,9 > query_ancestry_estimates-noNames.tsv
 # R Code For plotting admixture results
 # TODO: Run from bash script
 # TODO: Add population legend
-tbl=read.table("chr22.2.Q")
+tbl=read.table("query_ancestry_estimates-noNames.tsv")
 newtbl <- tbl[order(tbl$V1),]
 barplot(t(as.matrix(newtbl)), col=rainbow(3),
 xlab="Individual #", ylab="Ancestry", border=NA)
