@@ -216,8 +216,10 @@ seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 gunzip -c $PBS_O_WORKDIR/phase_out/chr{1}.vcf.gz '>' $PBS_O_WORKDIR/phase_out/chr{1}.vcf
 
 # Correcting switch errors in genotype data
-# Shuold this step be done on the subset VCF? Or full VCF
+# Should this step be done on the subset VCF? Or full VCF?
+# TODO: Un-hardcode python.
 seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
-python $PBS_O_WORKDIR/UnkinkGenofile.py \
+/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/python \
+$PBS_O_WORKDIR/Tractor/UnkinkGenofile.py \
 --switches $PBS_O_WORKDIR/rfmix_out/chr{1}.switches.txt \
---genofile $PBS_O_WORKDIR/phase_out/chr{1}
+--genofile $PBS_O_WORKDIR/annotation_out/chr{1}.vcf
