@@ -223,3 +223,11 @@ seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 $PBS_O_WORKDIR/Tractor/UnkinkGenofile.py \
 --switches $PBS_O_WORKDIR/rfmix_out/chr{1}.switches.txt \
 --genofile $PBS_O_WORKDIR/annotation_out/chr{1}.vcf
+
+# Step 2: Extracting tracts & ancestral dosages
+# TODO: Wasn't working on multiple nodes, additionally, a single node only supports 15 parallel jobs at one time regardless of whether there is enough cores
+seq 1 22 | parallel -N1 -j22 --sshloginfile $PBS_NODEFILE \
+python3 $PBS_O_WORKDIR/Tractor/ExtractTracts.py \
+--msp $PBS_O_WORKDIR/rfmix_out/chr{1} \
+--vcf $PBS_O_WORKDIR/tractor_out/unkinked/chr{1}.unkinked \
+--num-ancs 2
