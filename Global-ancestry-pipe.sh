@@ -160,7 +160,12 @@ done &
 admixture ../plink_merge-all_out.bed 2 --supervised -j1
 paste plink_merge-all_out.fam plink_merge-all_out.pop admixture_out/plink_merge-all_out.2.Q > admixture_out/ancestry_estimates.txt # Associate global ancestry esitmates with sample names.
 
-grep SJC* ancestry_estimates.txt | cut -f8,9 > query_ancestry_estimates-noNames.tsv
+# Make .tsv with admixture ancestry estimates including header.
+# Note: SJID column is needed for merging files in PRS calculation (as of 6/18/2022)
+grep SJC* ancestry_estimates.txt | cut -f1,2,8,9 | \
+awk 'BEGIN {print "FID\tIID\t%CEU\t%YRI\tSJID"} {print $0, $1_$2}' | \
+sed 's/\s\+/\t/g' > query_ancestry_estimates.tsv
+
 # R Code For plotting admixture results
 # TODO: Run from bash script
 # TODO: Add population legend
