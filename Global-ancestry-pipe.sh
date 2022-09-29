@@ -5,6 +5,10 @@
 # TODO: Get variable name for number of threads
 
 ##################### Phase autosomes with Beagle #########################################
+# The presence of a "chr" prefix on chromosomes on either the map of vcf file but not the other causes an error.
+# Changed the map files to include the "chr" prefix via:
+seq 1 22 | xargs -I{} sed -i 's/^/chr/' beagle_maps/plink.chr{}.GRCh38.map
+
 # TODO: Check for beagle map files. If not present, download. Delete after phasing
 # TODO: Check for reference files. If not present, download. Is this necessary if no imputation is done?
 # TODO: Check if "phase_out" directory exists, if not, then make
@@ -22,6 +26,10 @@ out=$PBS_O_WORKDIR/$beagle_out/chr{1}_phased_Emory-alloimmunization \
 impute=false \
 nthreads=12
 
+# Remove "chr" prefixes from vcf entries.
+# TODO: Do this before phasing!
+seq 1 22 | parallel \
+"zcat phase_out/chr{1}_phased_Emory-alloimmunization.vcf.gz | sed 's/^chr//' | bgzip > phase_out/chr{1}_phased_Emory-alloimmunization.fixedChrPrefix.vcf.gz"
 #################### Get sample names specific to each query population ##################################
 # Run from base directory
 ls igsr* | xargs -I{} tail -n +2 {} | cut -f1 >> query_population_sampleNames_noGender
