@@ -70,10 +70,13 @@ find ref/ALL_POP/ -name *ALL.chr[0-9]*.gz | parallel -N1 -j1 --sshloginfile $PBS
 $PBS_O_WORKDIR/{1} #Input
 
 #################### Index Phased Autosomes & Subsetted Ref VCFs#############################################
-find ref/subset phase_out -name "*chr*gz" | parallel -N1 --sshloginfile $PBS_NODEFILE -j1 \
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 /storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bcftools index \
---threads 12 \
-$PBS_O_WORKDIR/{1}
+$PBS_O_WORKDIR/rename_dedup_out/chr{1}_phased_.vcf.gz
+
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bcftools index \
+$PBS_O_WORKDIR/rename_dedup_out/chr{1}.CEU-YRI.vcf.gz
 
 #################### Intersect VCFs ##########################################################
 # Intersect all chromosome vcfs between St. Jude patient data and CEU-YRI 1000 Genomes data
