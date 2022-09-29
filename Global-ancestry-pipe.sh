@@ -182,14 +182,25 @@ awk 'BEGIN {print "Sample_ID\tCEU\tYRI"} {print $1"\t"$8"\t"$9}' > admixture_out
 # R Code For plotting admixture results
 # TODO: Run from bash script
 # TODO: Add population legend
-tbl=read.table("query_ancestry_estimates-noNames.tsv")
-newtbl <- tbl[order(tbl$V1),]
-barplot(t(as.matrix(newtbl)), col=c("darkblue","red"), fill=c("darkblue","red"),
-main="Global Ancestry Proportions",
-xlab="Individual #", ylab="Ancestry", border=NA) +
+anc <- read.table("query_ancestry_estimates.tsv", header = TRUE)
+anc <- anc[order(anc$CEU),]
+
+barplot(t(as.matrix(anc[,2:3])), col=c("#0000ff","#F4A500"), fill=c("#0000ff","#F4A500"),
+        main="Alloimmunization Cohort Global Ancestry Proportions",
+        xlab="Patient (n=355)", 
+        ylab="Ancestry", 
+        space = 0, 
+        border=NA,
+        xaxt = 'n',
+        cex.lab=2,
+        cex.axis = 1.8,
+        cex.main = 1.8,
+        mgp=c(1,-0.5,-1.5)) +
   legend("top", 
          legend = c("European (CEU)", "African (YRI)"), 
-         fill = c("darkblue", "red"))
+         fill = c("#0000ff", "#F4A500"),
+         cex =1.5)
+
 
 ################### Local Ancestry Inference with RFMix2 ##########################
 # TODO: Isolate local ancestry inference pipeline in separate script
