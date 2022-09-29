@@ -120,26 +120,24 @@ done
 # Used Plink 1.9
 # FUTURE: Make edits for use in PBS script
 # Query data conversion
-plink_out=plink_out
-find annotation_out/ -name '*.gz' | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
-plink --vcf {1} \
---out $plink_out/{=1 's/annotation_out\///;s/\.vcf\.gz//' =} \
+mkdir $PBS_O_WORKDIR/plink_out
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/plink \
+--vcf $PBS_O_WORKDIR/intersect_out/chr{1}/0002.vcf.gz \
+--out $PBS_O_WORKDIR/plink_out/Emory-alloimmunization_chr{1} \
 --make-bed \
 --threads 12
 
-# Ref data conversion
-plink_out=plink_out
-find intersect_out -maxdepth 2 -name '0003*gz' | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 /storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/plink \
---vcf $PBS_O_WORKDIR/{1} \
---out $PBS_O_WORKDIR/$plink_out/CEU-YRI_{=1 's/intersect_out\///;s/\/0003\.vcf\.gz//' =} \
+--vcf $PBS_O_WORKDIR/intersect_out/chr{1}/0003.vcf.gz \
+--out $PBS_O_WORKDIR/plink_out/CEU-YRI_chr{1} \
 --make-bed \
 --threads 12
- 
+
 # Merge chromosomal plink files for downstream ancestry analysis with 'admixture'
 ls plink_out/*[bf]* | xargs -n3 echo > mergedList.txt
-plink --out plink_merge-all_out --merge-list mergedList.txt # Got warnings for multiallelic sites. Still merged when variant names were unique...I think.
-
+plink --make-bed --out plink_merge-all_out --merge-list mergedList.txt
 
 ################## Associate ancestry with sample names####################################
 # Creates file with ancestry acronyms on each line in the case of ref samples, or '-' in the case of non-ref samples
