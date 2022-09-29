@@ -84,13 +84,16 @@ $PBS_O_WORKDIR/rename_dedup_out/chr{1}.CEU-YRI.vcf.gz
 # Batch rename (Extra if needed)
 #ls *.gz  | sed 'p;s/.gz//' | xargs -n2 -P8 mv
 
-intersect_out=intersect_out
-find ref/subset phase_out -name '*chr*.gz' | sort  -k2 -t 'c' | parallel -N2 -j1 --sshloginfile $PBS_NODEFILE \
+mkdir $PBS_O_WORKDIR/intersect_out
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bEmory-alloimmunizationcftools isec \
 -Oz \
--p $intersect_out/{=2 's/phase_out\///;s/\.vcf\.gz//' =} \
-$PBS_O_WORKDIR/{2} $PBS_O_WORKDIR/{1} #This worked
+-p $PBS_O_WORKDIR/intersect_out/chr{1} \
+$PBS_O_WORKDIR/rename_dedup_out/chr{1}_phased_Emory-alloimmunization.fixedChrPrefix.biallelic.renamed.vcf.gz \
+$PBS_O_WORKDIR/rename_dedup_out/subset/chr{1}.CEU-YRI.vcf.gz 
 
 ################## Add variant names to vcf #################################################
+# Remove?
 # The following loops work; the subsequent oneliners don't 
 for file in intersect_out/chr*/0002*gz; do
 	out_name=$(echo $file | sed 's/intersect_out\///;s/\/0002//')
