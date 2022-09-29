@@ -30,7 +30,24 @@ nthreads=12
 # TODO: Do this before phasing!
 seq 1 22 | parallel \
 "zcat phase_out/chr{1}_phased_Emory-alloimmunization.vcf.gz | sed 's/^chr//' | bgzip > phase_out/chr{1}_phased_Emory-alloimmunization.fixedChrPrefix.vcf.gz"
+
+# Remove multiallelic sites & add missing variant IDs
+# sort removes duplicates based on location; 
+# awk replaces variants IDs with CHR_POS_REF_ALT from the same entry
+mkdir $PBS_O_WORKDIR/rename_dedup_out
+echo "Remove multiallelic sites & add missing variant IDs" > rename_dedup_out/README
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+"zcat $PBS_O_WORKDIR/phase_out/chr{1}_phased_Emory-alloimmunization.fixedChrPrefix.vcf.gz | (head -n 9 && tail -n +10 | \
+sort -n -u -t $'\t' -k2 | \
+awk -v OFS='\t' '{\$3=\$1\"_\"\$2\"_\"\$4\"_\"\$5;print \$0}') | \
+/storage/home/hcoda1/0/cnaughton7/.conda/envs/ancestry-env1/bin/bgzip > \
+$PBS_O_WORKDIR/rename_dedup_out/chr{1}_phased_Emory-alloimmunization.fixedChrPrefix.biallelic.renamed.vcf.gz"
+
+#Renaming ref variant IDs requires "head -n 22 && tail -n +23"
+
 #################### Get sample names specific to each query population ##################################
+# Originally used data from /~/gridftp/1000g/ftp/data_collections/1000_genomes_project/release/20190312_biallelic_SNV_and_INDEL/
+# Now using updated data from 
 # Run from base directory
 ls igsr* | xargs -I{} tail -n +2 {} | cut -f1 >> query_population_sampleNames_noGender
 
