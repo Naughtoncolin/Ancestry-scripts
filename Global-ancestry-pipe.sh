@@ -9,14 +9,18 @@
 # TODO: Check for reference files. If not present, download. Is this necessary if no imputation is done?
 # TODO: Check if "phase_out" directory exists, if not, then make
 # TODO: Check for total memory available on each node; set as variable
-#Note: Expects 128GB of memory total per node
+#Note: Expects 96GB of memory total per node with 12 threads per node 
+mkdir $PBS_O_WORKDIR/phase_out
+beagle_maps=beagle_maps
+raw_data=raw/genotype
 beagle_out=phase_out
-find . -maxdepth 2 -name '*chr[1-9]*[mapgz]' | sort -k2 -t 'h' | parallel -N2 --sshloginfile $PBS_NODEFILE -j1 \
-java -Xmx128g -jar /storage/home/hcoda1/0/cnaughton7/p-ggibson3-0/software/beagle.19Apr22.7c0.jar \
-gt=$PBS_O_WORKDIR/{2} \
-map=$PBS_O_WORKDIR/{1} \
-out=$PBS_O_WORKDIR/$beagle_out/{=1 's/\.\/beagle_maps\/plink\.//;s/.GRCh38.map//' =} \
+seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
+java -Xmx96g -jar /storage/home/hcoda1/0/cnaughton7/p-ggibson3-0/software/beagle.22Jul22.46e.jar \
+gt=$PBS_O_WORKDIR/$raw_data/chr{1}_Emory-alloimmunization.vcf.gz \
+map=$PBS_O_WORKDIR/$beagle_maps/plink.chr{1}.GRCh38.map \
+out=$PBS_O_WORKDIR/$beagle_out/chr{1}_phased_Emory-alloimmunization \
 impute=false \
+nthreads=12
 
 #################### Get sample names specific to each query population ##################################
 # Run from base directory
