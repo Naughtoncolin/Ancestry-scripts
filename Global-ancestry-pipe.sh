@@ -143,6 +143,7 @@ plink --make-bed --out plink_merge-all_out --merge-list mergedList.txt
 # Creates file with ancestry acronyms on each line in the case of ref samples, or '-' in the case of non-ref samples
 # Takes a few minutes.
 # TODO: Add output name variable.
+# TODO: Add sample prefix variable.
 plink_fam_file=plink_merge-all_out.fam
 # Read through sample names in the plink fam file
 cat $plink_fam_file | while read line; do
@@ -150,7 +151,7 @@ cat $plink_fam_file | while read line; do
 
 	# Check if sample name has prefix of non-reference samples.
 	sample_prefix=$(echo $sample_name | grep -o ^..)
-	if [[ $sample_prefix == 'SJ' ]]; then
+	if [[ $sample_prefix == 'NW' ]]; then
 		echo '-' >> plink_merge-all_out.pop
 		continue
 	fi
