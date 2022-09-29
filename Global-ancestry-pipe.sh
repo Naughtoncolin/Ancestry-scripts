@@ -205,7 +205,9 @@ barplot(t(as.matrix(anc[,2:3])), col=c("#0000ff","#F4A500"), fill=c("#0000ff","#
 ################### Local Ancestry Inference with RFMix2 ##########################
 # TODO: Isolate local ancestry inference pipeline in separate script
 # TODO: Check for out folder
-rfmix_out=rfmix_out
+mkdir $PBS_O_WORKDIR/rfmix_out
+echo "RFMix2 run per chromsome with 24 cores/node" > $PBS_O_WORKDIR/rfmix_out/README
+rfmix_out=$PBS_O_WORKDIR/rfmix_out
 
 # Make file mapping sample names to ancestry required by RFMix2
 ls igsr* | xargs -I{} tail -n +2 {} | cut -f1,4 > query_population_sampleNames_ancestry
@@ -224,8 +226,8 @@ seq 1 22 | parallel -N1 -j1 --sshloginfile $PBS_NODEFILE \
 -f $PBS_O_WORKDIR/intersect_out/chr{1}/0002.vcf.gz \
 -r $PBS_O_WORKDIR/intersect_out/chr{1}/0003.vcf.gz \
 -m $PBS_O_WORKDIR/query_population_sampleNames_ancestry \
--g $PBS_O_WORKDIR/$rfmix_out/rfmix.chr{1}.GRCh38.map \
--o $PBS_O_WORKDIR/$rfmix_out/chr{1} \
+-g $PBS_O_WORKDIR/rfmix_out/rfmix.chr{1}.GRCh38.map \
+-o $PBS_O_WORKDIR/rfmix_out/chr{1} \
 --chromosome={1} \
 --n-threads=24
 
